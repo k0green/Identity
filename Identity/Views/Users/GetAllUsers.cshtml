@@ -1,0 +1,109 @@
+﻿@model List<Identity.ViewModel.UserViewModel>
+
+<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    <div class="container-fluid bg-dark text-light">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+            <ul class="navbar-nav flex-grow-1">
+                <li class="nav-item">
+                    <a class="nav-link text-light" id="btnBlock"><img src="wwwroot/emblemreadonly_93480.ico" />Block</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-light" id="btnUnlock">Unlock</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-light" id="btnDelete"><img src="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.flaticon.com%2Fru%2Ffree-icon%2Flock-button_17636&psig=AOvVaw1uekF-VNvOH35aQlRvkGvb&ust=1674216248467000&source=images&cd=vfe&ved=0CA8QjRxqFwoTCOiezdfL0_wCFQAAAAAdAAAAABAE" />Delete</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<table class="table table-bordered table-striped" id="myTable">
+    <tr class="bg-dark text-light">
+        <th>
+            <p><label><input type="checkbox" class="largerCheckbox" id="checkAll" /> Check all</label></p>
+        </th>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Registration time</th>
+        <th>LastLogin Time</th>
+        <th>Status</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+
+        <tr>
+            <td><input type="checkbox" class="largerCheckbox" name="vehicle_@item.Id" value="@item.Id"></td>
+            <td>@item.Id</td>
+            <td>@item.UserName</td>
+            <td>@item.Email</td>
+            <td>@item.RegisterTime</td>
+            <td>@item.LastLoginTime</td>
+            <td>@item.RoleName</td>
+        </tr>
+    }
+</table>
+<p id="result" class="text-success"></p>
+
+
+<script>
+    $("#checkAll").change(function () {
+        $("input:checkbox").prop('checked', $(this).prop("checked"));
+    });
+</script>
+
+<script>
+    $("#btnBlock").on("click",
+        function () {
+            var checked = [];
+            $('input:checkbox:checked').each(function () {
+                checked.push($(this).val());
+            });
+            $.ajax({
+                url: "/Roles/BlockUser",
+                type: "post",
+                data: { userId: checked }
+            }).fail(function (err) { alert(err.toString()) }).done(function (response) {
+                alert(response.toString());
+            });
+        });
+</script>
+<script>
+    $("#btnUnlock").on("click",
+        function () {
+            var checked = [];
+            $('input:checkbox:checked').each(function () {
+                //$('#result').append($(this).val() + '<br>');
+                checked.push($(this).val());
+            });
+            $.ajax({
+                url: "/Roles/UnlockUser",
+                type: "post",
+                data: { userId: checked }
+            }).fail(function (err) { alert(err.toString()) }).done(function (response) {
+                alert(response.toString());
+            });
+        });
+</script>
+<script>
+    $("#btnDelete").on("click",
+        function () {
+            var checked = [];
+            $('input:checkbox:checked').each(function () {
+                //$('#result').append($(this).val() + '<br>');
+                checked.push($(this).val());
+            });
+            $.ajax({
+                url: "/Users/DeleteUsers",
+                type: "post",
+                data: { userId: checked }
+            }).fail(function (err) { alert(err.toString()) }).done(function (response) {
+                alert(response.toString());
+            });
+        });
+</script>
+
