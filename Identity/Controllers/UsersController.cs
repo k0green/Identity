@@ -1,4 +1,5 @@
 ﻿using Identity.Models;
+using Identity.Repository;
 using Identity.Service;
 using Identity.Service.IService;
 using Identity.ViewModel;
@@ -16,12 +17,14 @@ namespace Identity.Controllers
         private readonly UserManager<User> _userManager;
         private readonly IRoleService _roleService;
         private readonly IUserService _userService;
+        private readonly IRoleRepository _roleRepository;
 
-        public UsersController(UserManager<User> userManager, IRoleService roleService, IUserService userService)
+        public UsersController(UserManager<User> userManager, IRoleService roleService, IUserService userService, IRoleRepository roleRepository)
         {
             _userManager = userManager;
             _roleService = roleService;
             _userService = userService;
+            _roleRepository = roleRepository;
         }
 
         public IActionResult Index()
@@ -32,65 +35,11 @@ namespace Identity.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userService.GetAllUser();
-            return View(users);
-        }
-
-        public IActionResult Create() => View();
-
-        [HttpPost]
-        public async Task<IActionResult> Create(CreateUserViewModel model)
-        {
-            if (ModelState.IsValid)
+            var model = new UserModel()
             {
-                var result = await _userService.Create(model);
-                if (result.Succeeded)
-                {
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
-                }
-            }
+                Checkboxes = await _userService.GetAllUser()
+            };
             return View(model);
-        }
-
-        public async Task<IActionResult> Edit(string id)
-        {
-            EditUserViewModel model = await _userService.Edit(id);
-            return View(model);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Edit(EditUserViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var result = await _userService.Edit(model);
-                    if (result.Succeeded)
-                    {
-                        return RedirectToAction("Index");
-                    }
-                    else
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError(string.Empty, error.Description);
-                        }
-                    }
-            }
-            return View(model);
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> Delete(string id)
-        {
-            await _userService.Delete(id);
-            return RedirectToAction("Index");
         }
 
         [HttpPost]
@@ -105,12 +54,56 @@ namespace Identity.Controllers
                     check= true;
                 }
             }
-            if (check) { RedirectToRoute(new { controller = "Account", action = "Logout" }); }
+            if (check) { RedirectToRoute(new { controller = "Account", action = "Login" }); }
             else
             {
                 return RedirectToAction("GetAllUsers");
             }
             return BadRequest();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> WhatToDo(UserModel model, string buttonName)
+        {
+            if (model.UniqueName != null && buttonName != null)
+            {
+                var check = false;
+                switch (buttonName)
+                {
+                    case "btnBlock":
+                        foreach (var id in model.UniqueName)
+                        {
+                            await _roleRepository.BlockUser(id);
+
+                            if (Request.Cookies["UserId"] == id)
+                            {
+                                check = true;
+                            }
+
+                        }
+                        if (check) {return RedirectToAction("Login","Account"); }
+
+                        break;
+                    case "btnUnlock":
+                        foreach (var id in model.UniqueName)
+                        {
+                           await _roleRepository.UnlockUser(id);
+                        }
+                        break;
+                    case "btnDelete":
+                        foreach(var id in model.UniqueName)
+                        {
+                            await _userService.Delete(id);
+                            if (Request.Cookies["UserId"] == id)
+                            {
+                                check= true;
+                            }
+                        }
+                        if (check) { return RedirectToAction("Login","Account"); }
+                        break;
+                }
+            }
+            return RedirectToAction("GetAllUsers");
         }
     }
 }

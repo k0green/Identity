@@ -1,5 +1,6 @@
-﻿@model List<Identity.ViewModel.UserViewModel>
+﻿@model Identity.Models.UserModel
 
+<form asp-controller="Users" asp-action="WhatToDo" method="post">
 <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
     <div class="container-fluid bg-dark text-light">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -9,18 +10,19 @@
         <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
             <ul class="navbar-nav flex-grow-1">
                 <li class="nav-item">
-                    <a class="nav-link text-light" id="btnBlock"><img src="wwwroot/emblemreadonly_93480.ico" />Block</a>
+                        <button type="submit" class="btn btn-primary" name="block" id="btnBlock" style="margin-left:20px">Block</button>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-light" id="btnUnlock">Unlock</a>
-                </li>
+                        <button type="submit" class="btn btn-primary" name="unlock" id="btnUnlock" style="margin-left:20px">Unlock</button>
+</li>
                 <li class="nav-item">
-                    <a class="nav-link text-light" id="btnDelete"><img src="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.flaticon.com%2Fru%2Ffree-icon%2Flock-button_17636&psig=AOvVaw1uekF-VNvOH35aQlRvkGvb&ust=1674216248467000&source=images&cd=vfe&ved=0CA8QjRxqFwoTCOiezdfL0_wCFQAAAAAdAAAAABAE" />Delete</a>
+                        <button type="submit" class="btn btn-primary" name="delete" id="btnDelete" style="margin-left:20px">Delete</button>
                 </li>
             </ul>
         </div>
     </div>
 </nav>
+
 <table class="table table-bordered table-striped" id="myTable">
     <tr class="bg-dark text-light">
         <th>
@@ -33,11 +35,11 @@
         <th>LastLogin Time</th>
         <th>Status</th>
     </tr>
-    @foreach (var item in Model)
+    @foreach (var item in Model.Checkboxes)
     {
 
         <tr>
-            <td><input type="checkbox" class="largerCheckbox" name="vehicle_@item.Id" value="@item.Id"></td>
+            <td><input id="checkbox_@item.Id" type="checkbox" class="largerCheckbox" checked="@item.IsChecked" name="UniqueName" value="@item.Id"></td>
             <td>@item.Id</td>
             <td>@item.UserName</td>
             <td>@item.Email</td>
@@ -47,6 +49,9 @@
         </tr>
     }
 </table>
+<input type="hidden" id="buttonName" name="buttonName" value="empty"/>
+
+</form>
 <p id="result" class="text-success"></p>
 
 
@@ -57,53 +62,11 @@
 </script>
 
 <script>
-    $("#btnBlock").on("click",
-        function () {
-            var checked = [];
-            $('input:checkbox:checked').each(function () {
-                checked.push($(this).val());
-            });
-            $.ajax({
-                url: "/Roles/BlockUser",
-                type: "post",
-                data: { userId: checked }
-            }).fail(function (err) { alert(err.toString()) }).done(function (response) {
-                alert(response.toString());
-            });
+    $(function () {
+        $("button").on("click", function () {
+            var id = $(this).attr("id");
+            document.getElementById("buttonName").value = id;
         });
-</script>
-<script>
-    $("#btnUnlock").on("click",
-        function () {
-            var checked = [];
-            $('input:checkbox:checked').each(function () {
-                //$('#result').append($(this).val() + '<br>');
-                checked.push($(this).val());
-            });
-            $.ajax({
-                url: "/Roles/UnlockUser",
-                type: "post",
-                data: { userId: checked }
-            }).fail(function (err) { alert(err.toString()) }).done(function (response) {
-                alert(response.toString());
-            });
-        });
-</script>
-<script>
-    $("#btnDelete").on("click",
-        function () {
-            var checked = [];
-            $('input:checkbox:checked').each(function () {
-                //$('#result').append($(this).val() + '<br>');
-                checked.push($(this).val());
-            });
-            $.ajax({
-                url: "/Users/DeleteUsers",
-                type: "post",
-                data: { userId: checked }
-            }).fail(function (err) { alert(err.toString()) }).done(function (response) {
-                alert(response.toString());
-            });
-        });
+    });
 </script>
 

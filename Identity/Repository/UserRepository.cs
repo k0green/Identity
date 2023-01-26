@@ -24,6 +24,7 @@ namespace Identity.Repository
         {
             var users = _userManager.Users.Select(x => new UserViewModel
             {
+                IsChecked = false,
                 Id = x.Id,
                 UserName = x.UserName,
                 Email = x.Email,

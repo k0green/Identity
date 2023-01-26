@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationContext>(options =>
-                options.UseSqlServer("Data Source=SQL8004.site4now.net;Initial Catalog=db_a935ed_usersstoredb;User Id=db_a935ed_usersstoredb_admin;Password=4704egor"));
+                options.UseSqlServer("Data Source=SQL8002.site4now.net;Initial Catalog=db_a935ed_usersstoredb;User Id=db_a935ed_usersstoredb_admin;Password=4704egor"));
 builder.Services.AddIdentity<User, IdentityRole>(opts =>
 {
     opts.Password.RequiredLength = 1;   // минимальная длина

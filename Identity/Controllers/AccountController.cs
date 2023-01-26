@@ -1,4 +1,6 @@
 ﻿using Identity.Models;
+using Identity.Repository;
+using Identity.Service.IService;
 using Identity.ViewModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +11,14 @@ namespace Identity.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IRoleService _roleService;
 
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IRoleService roleService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleService = roleService;
+
         }
         [HttpGet]
         public IActionResult Register()
@@ -26,11 +31,9 @@ namespace Identity.Controllers
             if (ModelState.IsValid)
             {
                 User user = new User { Email = model.Email, UserName = model.Email, Year = model.Year, RegisterTime=DateTime.Now, LastLogin=DateTime.Now };
-                // добавляем пользователя
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    // установка куки
                     await _signInManager.SignInAsync(user, false);
                     await _userManager.AddToRoleAsync(user, "base");
                     Response.Cookies.Append("UserId", $"{user.Id}");
@@ -62,7 +65,6 @@ namespace Identity.Controllers
                     await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
-                    // проверяем, принадлежит ли URL приложению
                     if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                     {
                         return Redirect(model.ReturnUrl);
@@ -72,13 +74,16 @@ namespace Identity.Controllers
                         var user = await _userManager.FindByEmailAsync(model.Email);
                         user.LastLogin= DateTime.Now;
                         await _userManager.UpdateAsync(user);
-                        var users = await _userManager.GetUsersInRoleAsync("block");
-                        if (users.Contains(user))
+                        var userRole = await _roleService.GetRoleName(user.Id);
+                        if (userRole == "block")
                         {
                             ModelState.AddModelError("", "К сожалению вы были заблокированы");
                         }
-                        Response.Cookies.Append("UserId", $"{user.Id}");
-                        return RedirectToAction("GetAllUsers", "Users");
+                        else
+                        {
+                            Response.Cookies.Append("UserId", $"{user.Id}");
+                            return RedirectToAction("GetAllUsers", "Users");
+                        }
                     }
                 }
                 else
@@ -93,7 +98,6 @@ namespace Identity.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            // удаляем аутентификационные куки
             await _signInManager.SignOutAsync();
             return RedirectToAction("Login", "Account");
         }
